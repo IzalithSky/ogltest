@@ -9,7 +9,7 @@ add_subdirectory(deps/glad)
 add_subdirectory(deps/glfw)
 add_subdirectory(src)
 
-include_directories(deps./glad/include)
+include_directories(deps/glad/include)
 include_directories(deps/glfw/include)
 include_directories(deps/glfw/deps)
 
