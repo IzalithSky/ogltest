@@ -1,0 +1,2 @@
+#define ogltest_VERSION_MAJOR @ogltest_VERSION_MAJOR@
+#define ogltest_VERSION_MINOR @ogltest_VERSION_MINOR@
