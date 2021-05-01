@@ -17,7 +17,17 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
-set(SOURCES src/main.cpp)
+configure_file(
+	"${PROJECT_SOURCE_DIR}/resources/vertex_shader.glsl"
+	"${PROJECT_BINARY_DIR}/vertex_shader.glsl"
+    COPYONLY)
+
+configure_file(
+	"${PROJECT_SOURCE_DIR}/resources/fragment_shader.glsl"
+	"${PROJECT_BINARY_DIR}/fragment_shader.glsl"
+    COPYONLY)
+
+set(SOURCES src/main.cpp src/shader_loader.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

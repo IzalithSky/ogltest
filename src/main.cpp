@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <linmath.h>
+#include "shader_loader.h"
 
 static const struct {
     float x, y;
@@ -11,26 +12,10 @@ static const struct {
     {  0.6f, -0.4f, 0.f, 1.f, 0.f },
     {   0.f,  0.6f, 0.f, 0.f, 1.f }
 };
- 
-static const char* vertex_shader_text =
-    "#version 110\n"
-    "uniform mat4 MVP;\n"
-    "attribute vec3 vCol;\n"
-    "attribute vec2 vPos;\n"
-    "varying vec3 color;\n"
-    "void main()\n"
-    "{\n"
-    "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-    "    color = vCol;\n"
-    "}\n";
- 
-static const char* fragment_shader_text =
-    "#version 110\n"
-    "varying vec3 color;\n"
-    "void main()\n"
-    "{\n"
-    "    gl_FragColor = vec4(color, 1.0);\n"
-    "}\n";
+
+static const unsigned int indices[] = {
+    0, 1, 2
+};
 
 static void error_callback(int error, const char* description) {
     std::cout << "Error: " << error << std::endl << description;
@@ -74,7 +59,7 @@ int main()
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         glfwTerminate();
-        return false;
+        return 1;
     }
     glfwSwapInterval(1);
 
@@ -86,19 +71,18 @@ int main()
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    GLuint element_buffer;
+    glGenBuffers(1, &element_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
  
-    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-    glCompileShader(vertex_shader);
- 
-    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-    glCompileShader(fragment_shader);
- 
-    GLuint program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
+    GLuint program;
+    if (!getProgram("vertex_shader.glsl", "fragment_shader.glsl", program)) {
+        std::cout << "Failed to load shaders" << std::endl;
+        glfwTerminate();
+        return 1;
+    }
  
     GLint mvp_location = glGetUniformLocation(program, "MVP");
     GLint vpos_location = glGetAttribLocation(program, "vPos");
@@ -133,14 +117,15 @@ int main()
         mat4x4_mul(mvp, p, m);
 
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
     
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glDeleteVertexArrays(1, &vertex_array);
-    // glDeleteBuffers(1, &vertex_buffer);
+    glDeleteBuffers(1, &vertex_buffer);
+    glDeleteBuffers(1, &element_buffer);
     glfwDestroyWindow(window);
     glfwTerminate();
   
