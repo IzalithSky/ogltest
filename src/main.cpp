@@ -1,7 +1,12 @@
 #include <iostream>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <linmath.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "shader_loader.h"
 
 static const struct {
@@ -17,6 +22,9 @@ static const unsigned int indices[] = {
     0, 1, 2
 };
 
+static unsigned int SCR_WIDTH = 800;
+static unsigned int SCR_HEIGHT = 600;
+
 static void error_callback(int error, const char* description) {
     std::cout << "Error: " << error << std::endl << description;
 }
@@ -31,10 +39,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
 }
 
-int main()
-{
+int main() {
     glfwSetErrorCallback(error_callback);
 
     if (!glfwInit()) {
@@ -98,25 +107,15 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glUseProgram(program);
-
-    while (!glfwWindowShouldClose(window))
-    {
-        float ratio;
-        int width, height;
-        mat4x4 m, p, mvp;
- 
-        glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float) height;
- 
+    
+    while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 
-        mat4x4_identity(m);
-        mat4x4_rotate_Z(m, m, (float) glfwGetTime());
-        mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-        mat4x4_mul(mvp, p, m);
 
-        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+        glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
+        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(model));
+
         glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
     
         glfwSwapBuffers(window);
