@@ -1,11 +1,15 @@
-#version 110
+#version 330 core
 
-uniform mat4 MVP;
-attribute vec3 vCol;
-attribute vec2 vPos;
-varying vec3 color;
+in vec3 vPos;
+in vec3 vCol;
+
+out vec3 color;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 void main() {
-    gl_Position = MVP * vec4(vPos, 0.0, 1.0);
+    gl_Position = projection * view * model * vec4(vPos, 1.0);
     color = vCol;
 }

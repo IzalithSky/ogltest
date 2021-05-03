@@ -10,12 +10,12 @@
 #include "shader_loader.h"
 
 static const struct {
-    float x, y;
+    float x, y, z;
     float r, g, b;
 } vertices[3] = {
-    { -0.6f, -0.4f, 1.f, 0.f, 0.f },
-    {  0.6f, -0.4f, 0.f, 1.f, 0.f },
-    {   0.f,  0.6f, 0.f, 0.f, 1.f }
+    { -0.6f, -0.4f, 0.0f, 1.f, 0.f, 0.f },
+    {  0.6f, -0.4f, 0.0f, 0.f, 1.f, 0.f },
+    {   0.f,  0.6f, 0.0f, 0.f, 0.f, 1.f }
 };
 
 static const unsigned int indices[] = {
@@ -24,6 +24,8 @@ static const unsigned int indices[] = {
 
 static unsigned int SCR_WIDTH = 800;
 static unsigned int SCR_HEIGHT = 600;
+static float FOV = 110;
+static float DRAW_RANGE = 1000;
 
 static void error_callback(int error, const char* description) {
     std::cout << "Error: " << error << std::endl << description;
@@ -93,16 +95,19 @@ int main() {
         return 1;
     }
  
-    GLint mvp_location = glGetUniformLocation(program, "MVP");
     GLint vpos_location = glGetAttribLocation(program, "vPos");
     GLint vcol_location = glGetAttribLocation(program, "vCol");
- 
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
+    
+    GLint model_location = glGetUniformLocation(program, "model");
+    GLint view_location = glGetUniformLocation(program, "view");
+    GLint projection_location = glGetUniformLocation(program, "projection");
+
+    glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE,
                           sizeof(vertices[0]), (void*) 0);
     glEnableVertexAttribArray(vpos_location);
     
     glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertices[0]), (void*) (sizeof(float) * 2));
+                          sizeof(vertices[0]), (void*) (sizeof(float) * 3));
     glEnableVertexAttribArray(vcol_location);
 
     glEnable(GL_DEPTH_TEST);
@@ -113,8 +118,18 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.5f, 1.0f, 0.0f));
-        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(model));
+        model = glm::rotate(model, (float) glfwGetTime(), glm::vec3(0.0f, 0.0f, 0.5f));
+        
+        glm::mat4 view = glm::mat4(1.0f);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -2.0f)); // note that we're translating the scene in the reverse direction of where we want to move
+
+        glm::mat4 projection;
+        projection = glm::perspective(glm::radians(FOV), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, DRAW_RANGE);
+        projection = glm::rotate(projection, (float) glfwGetTime(), glm::vec3(0.0f, 0.5f, 0.0f));
+    
+        glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
 
         glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
     
