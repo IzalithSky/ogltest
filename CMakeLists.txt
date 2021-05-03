@@ -20,12 +20,12 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 configure_file(
-	"${PROJECT_SOURCE_DIR}/resources/vertex_shader.glsl"
+	"${PROJECT_SOURCE_DIR}/src/shaders/vertex_shader.glsl"
 	"${PROJECT_BINARY_DIR}/vertex_shader.glsl"
     COPYONLY)
 
 configure_file(
-	"${PROJECT_SOURCE_DIR}/resources/fragment_shader.glsl"
+	"${PROJECT_SOURCE_DIR}/src/shaders/fragment_shader.glsl"
 	"${PROJECT_BINARY_DIR}/fragment_shader.glsl"
     COPYONLY)
 
