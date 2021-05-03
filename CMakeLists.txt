@@ -29,7 +29,7 @@ configure_file(
 	"${PROJECT_BINARY_DIR}/fragment_shader.glsl"
     COPYONLY)
 
-set(SOURCES src/main.cpp src/shader_loader.cpp)
+set(SOURCES src/main.cpp src/shader_loader.cpp src/ogl4_1_renderer.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
