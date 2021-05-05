@@ -21,13 +21,9 @@ static const unsigned int indices[] = {
 
 class ogl4_1_renderer {
 public:
-    unsigned int SCR_WIDTH = 800;
-    unsigned int SCR_HEIGHT = 600;
-    float FOV = 110;
-    float DRAW_RANGE = 1000;
-
     int init();
     bool shouldClose();
+    void processInput();
     void draw();
     void close();
 

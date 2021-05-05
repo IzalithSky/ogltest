@@ -7,6 +7,7 @@ int main() {
         std::cout << "Initialisation failed" << std::endl;
     }
     while (!renderer.shouldClose()) {
+        renderer.processInput();
         renderer.draw();
     }
     renderer.close();
