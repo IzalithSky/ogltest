@@ -1,8 +1,9 @@
+#include "ShaderProgram.h"
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
-#include "shader_loader.h"
+#include <glm/glm.hpp>
 
 int load_shader(
     GLuint &shader,
@@ -45,18 +46,18 @@ bool load_fragment_shader(GLuint &shader, const char* shader_text) {
     return success ? true : false;
 }
 
-bool load_program(GLuint &program, GLuint vertex_shader, GLuint fragment_shader) {
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
+bool load_program(GLuint &programId, GLuint vertex_shader, GLuint fragment_shader) {
+    programId = glCreateProgram();
+    glAttachShader(programId, vertex_shader);
+    glAttachShader(programId, fragment_shader);
+    glLinkProgram(programId);
 
     int isLinked;
-    glGetShaderiv(program, GL_LINK_STATUS, &isLinked);
+    glGetShaderiv(programId, GL_LINK_STATUS, &isLinked);
     if (GL_FALSE == isLinked) {
         GLint maxLength = 0;
         char infoLog[0];
-        glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+        glGetProgramInfoLog(programId, maxLength, &maxLength, &infoLog[0]);
         std::cout << "ERROR::PROGRAM::LINKING_FAILED" << std::endl << infoLog << std::endl;
     }
     
@@ -64,7 +65,7 @@ bool load_program(GLuint &program, GLuint vertex_shader, GLuint fragment_shader)
 }
 
 bool makeProgramm(
-    GLuint &program,
+    GLuint &programId,
     const char* vertex_shader_src,
     const char* fragment_shader_src) {
 
@@ -76,7 +77,7 @@ bool makeProgramm(
     if (!load_fragment_shader(fragment_shader, fragment_shader_src)) {
         return false;
     }
-    if (!load_program(program, vertex_shader, fragment_shader)) {
+    if (!load_program(programId, vertex_shader, fragment_shader)) {
         return false;
     }
     glDeleteShader(vertex_shader);
@@ -85,7 +86,7 @@ bool makeProgramm(
     return true;
 }
 
-bool getProgram(std::string vertexPath, std::string fragmentPath, GLuint &program) {
+ShaderProgram::ShaderProgram(std::string vertexPath, std::string fragmentPath) {
     std::string vertexCode;
     std::string fragmentCode;
     std::ifstream vShaderFile;
@@ -110,8 +111,20 @@ bool getProgram(std::string vertexPath, std::string fragmentPath, GLuint &progra
         // if geometry shader path is present, also load a geometry shader
     } catch (std::ifstream::failure e) {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-        return false;
+        throw std::exception();
     }
     
-    return makeProgramm(program, vertexCode.c_str(), fragmentCode.c_str());
+    if (!makeProgramm(programId, vertexCode.c_str(), fragmentCode.c_str())) {
+        throw std::exception();
+    }
+
+    model_location = glGetUniformLocation(programId, "model");
+    view_location = glGetUniformLocation(programId, "view");
+    projection_location = glGetUniformLocation(programId, "projection");
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+void ShaderProgram::use() {
+    glUseProgram(programId);
 }

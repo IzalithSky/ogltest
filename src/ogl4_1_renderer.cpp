@@ -6,8 +6,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader_loader.h"
-
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -25,7 +23,7 @@ float lastFrame = 0.0f;
 
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
-float DRAW_RANGE = 1000;
+float DRAW_RANGE = 1024;
 
 static void error_callback(int error, const char* description) {
     std::cout << "Error: " << error << std::endl << description;
@@ -78,8 +76,8 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
-    // SCR_WIDTH = width;
-    // SCR_HEIGHT = height;
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
 }
 
 int ogl4_1_renderer::init() {
@@ -114,40 +112,15 @@ int ogl4_1_renderer::init() {
     }
     glfwSwapInterval(1);
 
-    glGenVertexArrays(1, &vertex_array);
-    glBindVertexArray(vertex_array);
-    
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &element_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    if (!getProgram("vertex_shader.glsl", "fragment_shader.glsl", program)) {
+    try {
+        program = new ShaderProgram("vertex_shader.glsl", "fragment_shader.glsl");
+    } catch (std::exception) {
         std::cout << "Failed to load shaders" << std::endl;
         glfwTerminate();
         return 1;
     }
-
-    vpos_location = glGetAttribLocation(program, "vPos");
-    vcol_location = glGetAttribLocation(program, "vCol");
     
-    model_location = glGetUniformLocation(program, "model");
-    view_location = glGetUniformLocation(program, "view");
-    projection_location = glGetUniformLocation(program, "projection");
-
-    glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(vertices[0]), (void*) 0);
-    glEnableVertexAttribArray(vpos_location);
-    
-    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(vertices[0]), (void*) (sizeof(float) * 3));
-    glEnableVertexAttribArray(vcol_location);
-
-    glEnable(GL_DEPTH_TEST);
-    glUseProgram(program);
+    program->use();
 
     return 0;
 }
@@ -180,26 +153,27 @@ void ogl4_1_renderer::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        
     glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-    glm::mat4 projection;
-    projection = glm::perspective(glm::radians(FOV), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, DRAW_RANGE);
+    glm::mat4 projection = glm::perspective(glm::radians(FOV), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, DRAW_RANGE);
     
-    glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(program->model_location, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(program->view_location, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(program->projection_location, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
+    drawModels();
     
     glfwSwapBuffers(window);
     glfwPollEvents();
 }
 
+void ogl4_1_renderer::drawModels() {
+    std::list<Model>::iterator it;
+    for (it = models.begin(); it != models.end(); ++it) {
+        it->Draw(program);
+    }
+}
+
 void ogl4_1_renderer::close() {
-    glDeleteVertexArrays(1, &vertex_array);
-    glDeleteBuffers(1, &vertex_buffer);
-    glDeleteBuffers(1, &element_buffer);
     glfwDestroyWindow(window);
     glfwTerminate();
 }
