@@ -2,10 +2,10 @@ OpenGL 4 Rendering Test
 
 Dependencies:
 
-    GLWF (https://github.com/glfw/glfw)
-    glad (https://github.com/Dav1dde/glad)
-    glm (https://github.com/g-truc/glm)
-    assimp (https://github.com/assimp/assimp.git)
+    GLWF 3.3.4 (https://github.com/glfw/glfw)
+    glad 0.1.34 (https://github.com/Dav1dde/glad)
+    glm 0.9.9.8 (https://github.com/g-truc/glm)
+    assimp 4.1.0 (https://github.com/assimp/assimp.git)
     stb (https://github.com/nothings/stb)
 
 Build:

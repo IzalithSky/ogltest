@@ -27,10 +27,11 @@ public:
     std::vector<Texture> textures;
     GLuint VAO;
 
-    Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
+    Mesh(ShaderProgram *shader, std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
 
-    void Draw(ShaderProgram *shader);
+    void Draw();
 private:
+    ShaderProgram *shader;
     GLuint VBO, EBO;
 };
 

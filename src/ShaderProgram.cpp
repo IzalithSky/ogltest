@@ -118,6 +118,9 @@ ShaderProgram::ShaderProgram(std::string vertexPath, std::string fragmentPath) {
         throw std::exception();
     }
 
+    position = glGetAttribLocation(programId, "position");
+    textureCoords = glGetAttribLocation(programId, "textureCoords");
+
     model_location = glGetUniformLocation(programId, "model");
     view_location = glGetUniformLocation(programId, "view");
     projection_location = glGetUniformLocation(programId, "projection");

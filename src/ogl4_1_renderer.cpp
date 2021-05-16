@@ -110,7 +110,12 @@ int ogl4_1_renderer::init() {
         glfwTerminate();
         return 1;
     }
-    glfwSwapInterval(1);
+    
+    if (vsync) {
+        glfwSwapInterval(1);
+    } else {
+        glfwSwapInterval(0);
+    }
 
     try {
         program = new ShaderProgram("vertex_shader.glsl", "fragment_shader.glsl");
@@ -123,6 +128,10 @@ int ogl4_1_renderer::init() {
     program->use();
 
     return 0;
+}
+
+void ogl4_1_renderer::addAsset(Asset asset) {
+    assets.push_back(asset);
 }
 
 bool ogl4_1_renderer::shouldClose() {
@@ -149,14 +158,12 @@ void ogl4_1_renderer::processInput() {
 }
 
 void ogl4_1_renderer::draw() {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
     glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     glm::mat4 projection = glm::perspective(glm::radians(FOV), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, DRAW_RANGE);
     
-    glUniformMatrix4fv(program->model_location, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(program->view_location, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(program->projection_location, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -167,9 +174,16 @@ void ogl4_1_renderer::draw() {
 }
 
 void ogl4_1_renderer::drawModels() {
-    std::list<Model>::iterator it;
-    for (it = models.begin(); it != models.end(); ++it) {
-        it->Draw(program);
+    std::list<Asset>::iterator it;
+    glm::mat4 modelMat = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+
+    float f = 1;
+    for (it = assets.begin(); it != assets.end(); ++it) {
+        glm::mat4 pos = glm::translate(modelMat, it->pos);
+        // pos = glm::rotate(pos, (float) glfwGetTime() * glm::radians(50.0f * f), glm::vec3(0.5f, 1.0f, 0.0f));
+        glUniformMatrix4fv(program->model_location, 1, GL_FALSE, glm::value_ptr(pos));
+        it->model.Draw();
+        f += .1;
     }
 }
 

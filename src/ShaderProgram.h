@@ -8,7 +8,9 @@
 class ShaderProgram {
 public:
     GLuint programId;
-    
+
+    GLuint position;
+    GLuint textureCoords;
     GLint model_location;
     GLint view_location;
     GLint projection_location;

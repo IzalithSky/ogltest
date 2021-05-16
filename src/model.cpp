@@ -16,7 +16,7 @@
 #include <iostream>
 #include <map>
 
-GLuint TextureFromFile(const char *path, const std::string &directory) {
+GLuint TextureFromFile(const char *path, const std::string &directory, bool flipTexture) {
     std::string filename = std::string(path);
     filename = directory + '/' + filename;
 
@@ -24,7 +24,7 @@ GLuint TextureFromFile(const char *path, const std::string &directory) {
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(flipTexture);
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (data) {
         GLenum format;
@@ -53,18 +53,9 @@ GLuint TextureFromFile(const char *path, const std::string &directory) {
     return textureID;
 }
 
-Model::Model(std::string const &path) {
-    loadModel(path);
-}
-
-// draws the model, and thus all its meshes
-void Model::Draw(ShaderProgram *shader) {
-    for (GLuint i = 0; i < meshes.size(); i++) {
-        meshes[i].Draw(shader);
-    }
-}
-
-void Model::loadModel(std::string const &path) {
+Model::Model(std::string const &path, ShaderProgram *shader, bool flipTexture) {
+    this->shader = shader;
+    this->flipTexture = flipTexture;
     // read file via ASSIMP
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -78,6 +69,13 @@ void Model::loadModel(std::string const &path) {
 
     // process ASSIMP's root node recursively
     processNode(scene->mRootNode, scene);
+}
+
+// draws the model, and thus all its meshes
+void Model::Draw() {
+    for (GLuint i = 0; i < meshes.size(); i++) {
+        meshes[i].Draw();
+    }
 }
 
 // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -167,7 +165,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
     
-    return Mesh(vertices, indices, textures);
+    return Mesh(shader, vertices, indices, textures);
 }
 
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName) {
@@ -185,7 +183,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType 
         }
         if (!skip) {
             Texture texture;
-            texture.id = TextureFromFile(str.C_Str(), this->directory);
+            texture.id = TextureFromFile(str.C_Str(), this->directory, flipTexture);
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);
