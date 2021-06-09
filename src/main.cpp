@@ -4,8 +4,12 @@
 #include "filesystem.h"
 
 int main() {
+    Logger log;
+
+    log.info("hi");
+
     ogl4_1_renderer renderer;
-    renderer.vsync = true;
+    renderer.vsync = false;
     if (renderer.init()) {
         std::cout << "Initialisation failed" << std::endl;
     }
@@ -14,7 +18,11 @@ int main() {
     float offset = 4;
     std::cout << "Loading:" << std::endl;
 
-    Model model(FileSystem::getPath("resources/backpack/backpack.obj"), renderer.program);
+    Model model(FileSystem::getPath("resources/backpack/backpack.obj"));
+
+    // Model model(
+    //     FileSystem::getPath("resources/Content/boblampclean.md5mesh"), false);
+
     for (int i = 1; i <= count; i++) {
         glm::vec3 pos(0.f, 0.f, - offset * i);
         Asset asset = {model, pos};

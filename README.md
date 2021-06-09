@@ -13,7 +13,9 @@ Build:
     pull dependencies:
         git submodule update --init --recursive
 
-    test model is not included into the repo, download from https://github.com/JoeyDeVries/LearnOpenGL/tree/master/resources/objects/backpack and add under resources/backback (path is hardcoded).
+    test model is not included into the repo, download from 
+    https://github.com/JoeyDeVries/LearnOpenGL/tree/master/resources/objects/backpack 
+    and add under resources/backback (path is hardcoded).
 
     static build for gcc:        
         set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -lwsock32 -lws2_32 ${CMAKE_CXX_STANDARD_LIBRARIES}")
@@ -22,3 +24,10 @@ Build:
 Thanks to:
 
     https://learnopengl.com/
+
+TODO:
+
+ - add animation support
+ - add text rendering (nuklear? https://github.com/Immediate-Mode-UI/Nuklear)
+ - optimise RAM usage
+ - group meshes, make fewer drawcalls
